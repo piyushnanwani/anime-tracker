@@ -7,6 +7,8 @@ import {
   // CheckBox,
   StyleSheet
 } from "react-native";
+import {createUserWithEmailAndPassword} from 'firebase/auth';
+import {auth } from '../firebaseConfig';
 
 const RegisterScreen = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +16,27 @@ const RegisterScreen = () => {
   const [password, setPassword] = useState("");
   const [birthday, setBirthday] = useState("");
   const [isChecked, setIsChecked] = useState(false);
+
+
+  async function signUpHandler(){
+    if (!email || !username || !password || !birthday) {
+      alert("Please fill in all fields");
+      return;
+    }
+    // Exception handling
+    try {
+      const user = await createUserWithEmailAndPassword(auth, email, password);
+      console.log("User created: ", user);
+    } catch (error) {
+      console.log("error in creating user: ", error);
+    }
+
+    setEmail("");
+    setUsername("");
+    setPassword("");
+    setBirthday("");
+
+  }
 
   return (
     <View style={styles.container}>
@@ -54,7 +77,7 @@ const RegisterScreen = () => {
         </Text>
       </View> */}
 
-      <TouchableOpacity style={styles.button} onPress={() => {}}>
+      <TouchableOpacity style={styles.button} onPress={signUpHandler}>
         <Text style={styles.buttonText}>Sign up</Text>
       </TouchableOpacity>
     </View>

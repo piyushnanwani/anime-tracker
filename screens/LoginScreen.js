@@ -3,12 +3,38 @@ import { useState } from "react";
 import {
   useNavigation
 } from "@react-navigation/native";
+import { auth } from "../firebaseConfig";
+import {signInWithEmailAndPassword} from 'firebase/auth';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const navigation = useNavigation();
+
+  const storeData = async (value) => {
+    try {
+      const jsonValue = JSON.stringify(value)
+      await AsyncStorage.setItem('user', jsonValue)
+    } catch (error) {
+      console.log("error in storing data: ", error);
+    }
+  }
+
+  const signInHandler = async () => {
+    if (!email || !password) {
+      alert("Please fill in all fields");
+      return;
+    }
+    try {
+      const user = await signInWithEmailAndPassword(auth, email, password);
+      console.log("User logged in: ", user);
+      storeData(user);
+    } catch (error) {
+      console.log("error in logging in: ", error);
+    }
+  }
 
   return (
     <View style={styles.container}>
@@ -26,10 +52,10 @@ export default function LoginScreen() {
       </View>
 
       <View style={{ flex: 1 }}>
-        <TextInput placeholder="Username" style={styles.textInputStyle} />
-        <TextInput placeholder="Password" style={styles.textInputStyle} />
+        <TextInput placeholder="Email" style={styles.textInputStyle} value={email} onChangeText={(v) => setEmail(v) } />
+        <TextInput placeholder="Password" style={styles.textInputStyle} value={password} onChangeText={(text)=> setPassword(text)} />
         <View style={styles.btnStyle}>
-          <Button color="#284798" title="Sign in" />
+          <Button color="#284798" title="Sign in" onPress={signInHandler} />
         </View>
         <Text
           style={{

@@ -6,6 +6,9 @@ import {
 import { useState } from "react";
 import { Button, Text, View, StyleSheet, StatusBar } from "react-native";
 import { FlatList, Image, TouchableOpacity } from "react-native";
+import { database } from "../../firebaseConfig";
+import { getDatabase, ref, set, push, onValue, get } from "firebase/database";
+
 const DATA = [
   {
     id: "bd7acbea-c1b1-46c2-aed5-3ad53abb28ba",
@@ -32,7 +35,9 @@ const Item = ({ item, onPress, backgroundColor, textColor }) => (
     <Image
       style={styles.tinyLogo}
       source={{
-        uri: item.img
+        uri:
+          item.img ||
+          "https://static1.moviewebimages.com/wordpress/wp-content/uploads/2025/02/solo-leveling.jpg"
       }}
     />
     <Text style={[styles.title, { color: textColor, marginLeft: 8 }]}>
@@ -44,6 +49,30 @@ const Item = ({ item, onPress, backgroundColor, textColor }) => (
 export default function DiscoverScreen() {
   const navigation = useNavigation();
   const [selectedId, setSelectedId] = useState();
+  const [animeList, setAnimeList] = useState([]);
+
+  async function getAnimeListFromFirebase() {
+    try {
+      const animeRef = ref(database, "anime");
+      onValue(animeRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data){
+          iterateOverAnimeObjectCreateList(data);
+        }
+        console.log(data);
+      });
+    } catch (error) {
+      console.log("Error in fetching data from Firebase:", error);
+    }
+  }
+
+  const iterateOverAnimeObjectCreateList = (animeObject) => {
+    const animeArray = Object.keys(animeObject).map((key) => ({
+      id: key,
+      ...animeObject[key]
+    }));
+    setAnimeList(animeArray);
+  }
 
   const renderItem = ({ item }) => {
     const backgroundColor = item.id === selectedId ? "#fff" : "#fff";
@@ -60,19 +89,29 @@ export default function DiscoverScreen() {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: 'white', padding: 20 }}>
-      <Text style={{ marginLeft: 20, fontSize: 18, fontWeight: 'medium' }}>Most Popular Anime</Text>
-      <FlatList
+    <View style={{ flex: 1, backgroundColor: "white", padding: 20 }}>
+      <Text style={{ marginLeft: 20, fontSize: 18, fontWeight: "medium" }}>
+        Most Popular Anime
+      </Text>
+      {/* <FlatList
         data={DATA}
         renderItem={renderItem}
         keyExtractor={(item) => item.id}
         extraData={selectedId}
         horizontal={true}
+      /> */}
+      <FlatList
+        data={animeList}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id}
+        extraData={selectedId}
+        horizontal={true}
       />
+
+      <Button title="get Anime List" onPress={getAnimeListFromFirebase} />
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   container: {
